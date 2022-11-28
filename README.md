@@ -9,11 +9,64 @@ SQL
 №2: Найдите производителей принтеров. Вывести: maker
 Ссылка: https://sql-ex.ru/learn_exercises.php?LN=2
 
-Решение: SELECT maker FROM Product WHERE type = 'Printer'GROUP BY maker
+Решение: SELECT maker FROM Product WHERE type = 'Printer' GROUP BY maker
 
 №3: Найдите номер модели, объем памяти и размеры экранов ПК-блокнотов, цена которых превышает 1000 дол.
 Ссылка: https://sql-ex.ru/learn_exercises.php?LN=3
 
 Решение: SELECT model,ram,screen FROM Laptop WHERE price > 1000
 
-№4
+№4: Найдите все записи таблицы Printer для цветных принтеров.
+Ссылка: https://sql-ex.ru/learn_exercises.php?LN=4
+
+Решение: SELECT * FROM Printer WHERE color = 'y'
+
+№5: Найдите номер модели, скорость и размер жесткого диска ПК, имеющих 12x или 24x CD и цену менее 600 дол.
+Ссылка: https://sql-ex.ru/learn_exercises.php?LN=5
+
+Решение: SELECT model, speed, hd FROM PC WHERE ( cd = '12x' OR cd = '24x' ) AND price < 600
+
+№6: Для каждого производителя, выпускающего ПК-блокноты c объёмом жесткого диска не менее 10 Гбайт, найти скорости таких ПК-блокнотов. Вывод: производитель, скорость.
+Ссылка: https://sql-ex.ru/learn_exercises.php?LN=6
+
+Решение: SELECT DISTINCT maker, speed FROM laptop JOIN 
+(SELECT * FROM product WHERE type='laptop')
+this_table_1 ON laptop.model = this_table_1.model
+WHERE hd >= 10
+
+№7: Найдите номера моделей и цены всех имеющихся в продаже продуктов (любого типа) производителя B (латинская буква).
+Ссылка: https://sql-ex.ru/learn_exercises.php?LN=7
+
+Решение: SELECT DISTINCT pc.model, price FROM pc JOIN product on pc.model = product.model WHERE maker = 'B'
+UNION 
+SELECT DISTINCT laptop.model, price FROM laptop JOIN product on laptop.model = product.model WHERE maker = 'B'
+UNION
+SELECT DISTINCT printer.model, price FROM printer JOIN product on printer.model = product.model WHERE maker = 'B'
+
+№8:Найдите производителя, выпускающего ПК, но не ПК-блокноты.
+Ссылка: https://sql-ex.ru/learn_exercises.php?LN=8
+
+Решение: SELECT maker FROM product WHERE type = 'pc'
+EXCEPT
+SELECT maker FROM product WHERE type = 'laptop'
+
+№9: Найдите производителей ПК с процессором не менее 450 Мгц. Вывести: Maker
+Ссылка: https://sql-ex.ru/learn_exercises.php?LN=9
+
+Решение: SELECT DISTINCT product.maker FROM product JOIN pc on pc.model = product.model WHERE speed >= 450
+
+№10: Найдите модели принтеров, имеющих самую высокую цену. Вывести: model, price
+Ссылка: https://sql-ex.ru/learn_exercises.php?LN=10
+
+Решение: SELECT DISTINCT model, price FROM printer
+WHERE price = (SELECT MAX(price) FROM printer)
+
+№11: Найдите среднюю скорость ПК.
+Cсылка: https://sql-ex.ru/learn_exercises.php?LN=11
+
+Решение: SELECT AVG(speed) AS Avg_speed FROM pc
+
+№12: Найдите среднюю скорость ПК-блокнотов, цена которых превышает 1000 дол.
+Cсылка: https://sql-ex.ru/learn_exercises.php?LN=12
+
+Решение: SELECT AVG(speed) AS Avg_speed FROM laptop WHERE price > 1000
