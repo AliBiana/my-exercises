@@ -1,0 +1,2 @@
+# my-exercises
+SQL
