@@ -70,3 +70,10 @@ Cсылка: https://sql-ex.ru/learn_exercises.php?LN=11
 Cсылка: https://sql-ex.ru/learn_exercises.php?LN=12
 
 Решение: SELECT AVG(speed) AS Avg_speed FROM laptop WHERE price > 1000
+
+№13: Найдите среднюю скорость ПК, выпущенных производителем A.
+Ссылка: https://sql-ex.ru/learn_exercises.php?LN=13
+
+SELECT DISTINCT AVG(pc.speed) AS Avg_speed FROM pc JOIN product on pc.model = product.model WHERE maker = 'A'
+
+
