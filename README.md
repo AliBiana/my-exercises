@@ -81,4 +81,43 @@ Cсылка: https://sql-ex.ru/learn_exercises.php?LN=12
 
 SELECT DISTINCT AVG(pc.speed) AS Avg_speed FROM pc JOIN product on pc.model = product.model WHERE maker = 'A'
 
+№14: 
+Решение: SELECT s.class, s.name, c.country
+FROM ships s
+JOIN classes c ON s.class = c.class
+WHERE c.numGuns >= 10
 
+№15:
+Решение: 
+SELECT hd FROM pc GROUP BY (hd) HAVING COUNT(model) >= 2
+
+№16: 
+Решение:
+SELECT DISTINCT p1.model, p2.model, p1.speed, p1.ram
+FROM pc p1, pc p2
+WHERE p1.speed = p2.speed AND p1.ram = p2.ram AND p1.model > p2.model
+
+№17:
+Решение:
+SELECT DISTINCT product.type, laptop.model, laptop.speed
+FROM laptop, product
+WHERE speed < (SELECT MIN(speed) FROM pc)
+AND product.type ='Laptop'
+
+№18: 
+Решение: 
+SELECT DISTINCT maker, price FROM product JOIN printer ON printer.model = product.model WHERE price = (SELECT MIN(price) FROM printer
+WHERE color='y')
+AND color='y'
+
+№:19:
+РЕШЕНИЕ: SELECT maker, AVG(screen)
+FROM product JOIN laptop ON product.model=laptop.model
+GROUP BY maker
+
+№20: 
+Решение: SELECT maker as Maker, COUNT(model) as Count_Model
+FROM product
+WHERE type='pc'
+GROUP BY maker
+HAVING COUNT(model)>=3
