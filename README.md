@@ -47,8 +47,7 @@ SELECT model, speed, hd FROM PC WHERE ( cd = '12x' OR cd = '24x' ) AND price < 6
 ```
 
 ### 6
-[Для каждого производителя, выпускающего ПК-блокноты c объёмом жесткого диска не менее 10 Гбайт, найти скорости таких ПК-блокнотов. Вывод: производитель, скорость.]
-(https://sql-ex.ru/learn_exercises.php?LN=6)
+[Для каждого производителя, выпускающего ПК-блокноты c объёмом жесткого диска не менее 10 Гбайт, найти скорости таких ПК-блокнотов. Вывод: производитель, скорость.](https://sql-ex.ru/learn_exercises.php?LN=6)
 
 Решение: 
 ```sql
@@ -59,8 +58,7 @@ WHERE hd >= 10
 ```
 
 ### 7
-[Найдите номера моделей и цены всех имеющихся в продаже продуктов (любого типа) производителя B (латинская буква).]
-(https://sql-ex.ru/learn_exercises.php?LN=7)
+[Найдите номера моделей и цены всех имеющихся в продаже продуктов (любого типа) производителя B (латинская буква).](https://sql-ex.ru/learn_exercises.php?LN=7)
 
 Решение: 
 ```sql
@@ -72,8 +70,7 @@ SELECT DISTINCT printer.model, price FROM printer JOIN product on printer.model 
 ```
 
 ### 8
-[Найдите производителя, выпускающего ПК, но не ПК-блокноты.]
-(https://sql-ex.ru/learn_exercises.php?LN=8)
+[Найдите производителя, выпускающего ПК, но не ПК-блокноты.](https://sql-ex.ru/learn_exercises.php?LN=8)
 
 Решение: 
 ```sql
@@ -83,8 +80,7 @@ SELECT maker FROM product WHERE type = 'laptop'
 ```
 
 ### 9
-[Найдите производителей ПК с процессором не менее 450 Мгц. Вывести: Maker]
-(https://sql-ex.ru/learn_exercises.php?LN=9)
+[Найдите производителей ПК с процессором не менее 450 Мгц. Вывести: Maker](https://sql-ex.ru/learn_exercises.php?LN=9)
 
 Решение: 
 ```sql
@@ -92,8 +88,7 @@ SELECT DISTINCT product.maker FROM product JOIN pc on pc.model = product.model W
 ```
 
 ### 10 
-[Найдите модели принтеров, имеющих самую высокую цену. Вывести: model, price]
-(https://sql-ex.ru/learn_exercises.php?LN=10)
+[Найдите модели принтеров, имеющих самую высокую цену. Вывести: model, price](https://sql-ex.ru/learn_exercises.php?LN=10)
 
 Решение: 
 ```sql
