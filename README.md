@@ -4,7 +4,7 @@ SQL - список задач:
 [Задача 1](#1)
 [Задача 2](#2)
 
-### 1 задание  
+### 1 задание:  
 [Найдите номер модели, скорость и размер жесткого диска для всех ПК стоимостью менее 500 дол. Вывести: model, speed и hd](https://sql-ex.ru/learn_exercises.php?LN=1)
 
 Решение: 
@@ -12,7 +12,7 @@ SQL - список задач:
 SELECT model, speed, hd FROM PC WHERE price < 500
 ```
 
-### 2 задание
+### 2 задание:
 [Найдите производителей принтеров. Вывести: maker](https://sql-ex.ru/learn_exercises.php?LN=2)
 
 Решение:
@@ -126,7 +126,7 @@ WHERE type='pc'
 GROUP BY maker
 HAVING COUNT(model)>=3
 
-### 21 задание
+### 21 задание:
 [Найдите максимальную цену ПК, выпускаемых каждым производителем, у которого есть модели в таблице PC.
 Вывести: maker, максимальная цена.](https://sql-ex.ru/learn_exercises.php#answer_ref)
 
@@ -135,4 +135,13 @@ HAVING COUNT(model)>=3
 SELECT maker as Maker, MAX(price) as Max_price FROM product
 JOIN pc ON product.model = pc.model
 GROUP BY maker
+```
+### 22 задание: 
+[Для каждого значения скорости ПК, превышающего 600 МГц, определите среднюю цену ПК с такой же скоростью. Вывести: speed, средняя цена.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT speed as Speed, AVG(price) as Price
+FROM pc WHERE speed > 600
+GROUP BY speed
 ```
