@@ -4,7 +4,7 @@ SQL
 [Задача 1](#1)
 [Задача 2](#2)
 
-### 1  
+### 1 задание  
 [Найдите номер модели, скорость и размер жесткого диска для всех ПК стоимостью менее 500 дол. Вывести: model, speed и hd](https://sql-ex.ru/learn_exercises.php?LN=1)
 
 Решение: 
@@ -12,7 +12,7 @@ SQL
 SELECT model, speed, hd FROM PC WHERE price < 500
 ```
 
-### 2
+### 2 задание
 [Найдите производителей принтеров. Вывести: maker](https://sql-ex.ru/learn_exercises.php?LN=2)
 
 Решение:
