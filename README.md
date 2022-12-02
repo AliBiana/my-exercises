@@ -146,6 +146,7 @@ FROM pc WHERE speed > 600
 GROUP BY speed
 ```
 ### 23
+
 [Найдите производителей, которые производили бы как ПК
 со скоростью не менее 750 МГц, так и ПК-блокноты со скоростью не менее 750 МГц.
 Вывести: Maker](https://sql-ex.ru/learn_exercises.php#answer_ref)
@@ -161,7 +162,9 @@ WHERE speed>=750)
 ```
 
 ### 24
+
 [Перечислите номера моделей любых типов, имеющих самую высокую цену по всей имеющейся в базе данных продукции.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
 Решение:
 ```sql
 SELECT model 
@@ -182,4 +185,33 @@ FROM (
   SELECT price FROM Printer
   ) table2
  )
+```
+### 25
+
+[2003-02-14)
+Найдите производителей принтеров, которые производят ПК с наименьшим объемом RAM и с самым быстрым процессором среди всех ПК, имеющих наименьший объем RAM. Вывести: Maker](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT DISTINCT maker FROM product
+WHERE model IN (
+SELECT model FROM pc
+WHERE ram = (SELECT MIN(ram)
+  FROM pc
+  )
+AND speed = (
+  SELECT MAX(speed)
+  FROM pc
+  WHERE ram = (
+   SELECT MIN(ram)
+   FROM pc
+   )
+  )
+)
+AND
+maker IN (
+SELECT maker
+FROM product
+WHERE type='printer'
+)
 ```
