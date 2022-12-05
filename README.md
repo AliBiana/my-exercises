@@ -341,3 +341,97 @@ SELECT ship
 FROM Outcomes
 WHERE battle = 'North Atlantic' AND result = 'sunk'
 ```
+### 34
+
+[По Вашингтонскому международному договору от начала 1922 г. запрещалось строить линейные корабли водоизмещением более 35 тыс.тонн. Укажите корабли, нарушившие этот договор (учитывать только корабли c известным годом спуска на воду). Вывести названия кораблей.](https://sql-ex.ru/learn_exercises.php?LN=34)
+
+Решение:
+```sql
+SELECT name FROM classes, ships WHERE launched >=1922 AND displacement>35000 AND type='bb' AND
+ships.class = classes.class
+```
+### 35
+
+[В таблице Product найти модели, которые состоят только из цифр или только из латинских букв (A-Z, без учета регистра).
+Вывод: номер модели, тип модели.] (https://sql-ex.ru/learn_exercises.php?LN=35)
+
+Решение:
+```sql
+SELECT model, type
+FROM product
+WHERE upper(model) NOT like '%[^A-Z]%'
+OR model not like '%[^0-9]%'
+```
+### 36
+
+[Перечислите названия головных кораблей, имеющихся в базе данных (учесть корабли в Outcomes).](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT DISTINCT name as Name FROM (
+SELECT name FROM ships
+UNION
+SELECT ship FROM outcomes
+) t1
+WHERE name IN (SELECT class FROM classes)
+```
+### 37
+
+[Найдите классы, в которые входит только один корабль из базы данных (учесть также корабли в Outcomes).](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT c.class FROM Classes c
+LEFT JOIN (Select class, name FROM Ships
+UNION
+SELECT Classes.class as class, Outcomes.ship as name FROM Outcomes
+JOIN Classes ON Outcomes.ship = Classes.class) as s On c.class = s.class
+GROUP BY c.class
+HAVING COUNT(s.name)=1
+```
+### 38
+
+[Найдите страны, имевшие когда-либо классы обычных боевых кораблей ('bb') и имевшие когда-либо классы крейсеров ('bc').](https://sql-ex.ru/learn_exercises.php?LN=38)
+
+Решение:
+```sql
+SELECT DISTINCT country as COUNTRY
+FROM classes
+WHERE type='bb' AND country IN
+(
+SELECT country
+FROM classes
+WHERE type = 'bc'
+)
+```
+### 39
+
+[Найдите корабли, `сохранившиеся для будущих сражений`; т.е. выведенные из строя в одной битве (damaged), они участвовали в другой, произошедшей позже.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+
+Решение:
+```sql
+SELECT DISTINCT ship
+FROM outcomes o1
+LEFT JOIN Battles b1 ON b1.name = o1.battle
+WHERE result = 'damaged'
+and ship IN(
+SELECT ship
+FROM outcomes o2
+LEFT JOIN Battles b2 ON b2.name = o2.battle
+WHERE o2.ship=o1.ship
+AND b2.date > b1.date
+)
+```
+### 40
+
+[Найти производителей, которые выпускают более одной модели, при этом все выпускаемые производителем модели являются продуктами одного типа.
+Вывести: maker, type](https://sql-ex.ru/learn_exercises.php?LN=40)
+
+Решение:
+```sql
+SELECT maker, MAX(type) as Type
+FROM product
+GROUP BY maker
+HAVING COUNT(DISTINCT type) = 1 AND COUNT(model) > 1
+```
