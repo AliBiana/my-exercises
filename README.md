@@ -153,6 +153,7 @@ GROUP BY maker
 HAVING COUNT(model)>=3
 
 ### 21
+
 [Найдите максимальную цену ПК, выпускаемых каждым производителем, у которого есть модели в таблице PC.
 Вывести: maker, максимальная цена.](https://sql-ex.ru/learn_exercises.php#answer_ref)
 
@@ -163,6 +164,7 @@ JOIN pc ON product.model = pc.model
 GROUP BY maker
 ```
 ### 22 
+
 [Для каждого значения скорости ПК, превышающего 600 МГц, определите среднюю цену ПК с такой же скоростью. Вывести: speed, средняя цена.](https://sql-ex.ru/learn_exercises.php#answer_ref)
 
 Решение:
@@ -255,4 +257,65 @@ WHERE maker = 'A'
 ```
 
 ### 27:
+
+[Найдите средний размер диска ПК каждого из тех производителей, которые выпускают и принтеры. Вывести: maker, средний размер HD.](https://sql-ex.ru/learn_exercises.php)
+
+Решение:
+```sql
+SELECT maker as Maker, AVG(hd) as AVG
+FROM product JOIN pc ON product.model=pc.model
+WHERE maker IN (
+SELECT maker
+FROM product
+WHERE type='printer'
+)
+GROUP BY maker
+```
+
+### 28:
+
+[Используя таблицу Product, определить количество производителей, выпускающих по одной модели.](https://sql-ex.ru/learn_exercises.php?LN=28)
+
+Решение:
+```sql
+SELECT COUNT(maker) as Quantity FROM 
+(
+SELECT maker FROM product GROUP BY maker HAVING COUNT(*) = 1
+) this_table
+```
+###29
+
+[В предположении, что приход и расход денег на каждом пункте приема фиксируется не чаще одного раза в день [т.е. первичный ключ (пункт, дата)], написать запрос с выходными данными (пункт, дата, приход, расход). Использовать таблицы Income_o и Outcome_o.](https://sql-ex.ru/learn_exercises.php?LN=29)
+
+Решение:
+```sql
+SELECT income_o.point, income_o.[date], inc, out FROM income_o LEFT JOIN outcome_o ON outcome_o.point = income_o.point
+AND outcome_o.[date]=income_o.[date]
+UNION
+SELECT outcome_o.point, outcome_o.[date], inc, out FROM income_o RIGHT JOIN outcome_o ON
+outcome_o.point = income_o.point AND outcome_o.[date] = income_o.[date]
+```
+### 30
+
+[В предположении, что приход и расход денег на каждом пункте приема фиксируется произвольное число раз (первичным ключом в таблицах является столбец code), требуется получить таблицу, в которой каждому пункту за каждую дату выполнения операций будет соответствовать одна строка.
+Вывод: point, date, суммарный расход пункта за день (out), суммарный приход пункта за день (inc). Отсутствующие значения считать неопределенными (NULL).](https://sql-ex.ru/learn_exercises.php?LN=30)
+
+Решение:
+```sql
+SELECT point, [date], SUM(outs), SUM(incs) FROM
+(SELECT point, [date], SUM(out) outs, null incs FROM outcome GROUP BY point, [date]
+UNION
+SELECT point, [date], null, SUM(inc) incs FROM income GROUP BY point, [date]) this_table GROUP BY point, [date]
+```
+
+### 31
+
+[Для классов кораблей, калибр орудий которых не менее 16 дюймов, укажите класс и страну.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT class, country
+FROM classes
+WHERE bore>=16
+```
 
