@@ -318,4 +318,26 @@ SELECT class, country
 FROM classes
 WHERE bore>=16
 ```
+### 32
 
+[Одной из характеристик корабля является половина куба калибра его главных орудий (mw). С точностью до 2 десятичных знаков определите среднее значение mw для кораблей каждой страны, у которой есть корабли в базе данных.](https://sql-ex.ru/learn_exercises.php?LN=32)
+
+Решение:
+```sql
+SELECT country, cast(avg(bore*bore*bore/2) as numeric(38,2)) FROM
+(SELECT country, name, bore FROM ships sh JOIN classes c ON sh.class=c.class
+union
+SELECT country, ship, bore FROM outcomes o JOIN classes c ON o.ship = c.class) t1
+GROUP BY country
+```
+### 33
+
+[Укажите корабли, потопленные в сражениях в Северной Атлантике (North Atlantic). Вывод: ship.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+
+```sql
+SELECT ship
+FROM Outcomes
+WHERE battle = 'North Atlantic' AND result = 'sunk'
+```
