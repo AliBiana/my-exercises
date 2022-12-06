@@ -658,3 +658,129 @@ SELECT CAST(AVG(numguns*1.0) AS NUMERIC(6,2)) AS Avg_nmg
 FROM classes 
 WHERE type = 'bb'
 ```
+
+### 54
+
+[С точностью до 2-х десятичных знаков определите среднее число орудий всех линейных кораблей (учесть корабли из таблицы Outcomes).](https://sql-ex.ru/learn_exercises.php?LN=54)
+
+Решение:
+```sql
+SELECT CAST(AVG(numguns*1.0) AS NUMERIC(6,2)) as AVG_nmg 
+FROM (SELECT ship, numguns, type FROM Outcomes 
+JOIN classes ON ship = class
+UNION
+SELECT name, numguns, type 
+FROM ships s 
+JOIN classes c ON c.class = s.class) as x 
+WHERE type = 'bb'
+```
+
+### 55
+
+[Для каждого класса определите год, когда был спущен на воду первый корабль этого класса. Если год спуска на воду головного корабля неизвестен, определите минимальный год спуска на воду кораблей этого класса. Вывести: класс, год.](https://sql-ex.ru/learn_exercises.php?LN=55)
+
+Решение:
+```sql
+SELECT c.class, min(s.launched) 
+FROM classes c 
+LEFT JOIN ships s ON c.class = s.class 
+GROUP BY c.class
+```
+
+### 56
+
+[Для каждого класса определите число кораблей этого класса, потопленных в сражениях. Вывести: класс и число потопленных кораблей.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT c.class, COUNT(s.ship)
+FROM classes c
+LEFT JOIN (SELECT o.ship, sh.class
+FROM outcomes o
+LEFT JOIN ships sh ON sh.name = o.ship
+WHERE o.result = 'sunk') AS s ON s.class = c.class OR s.ship = c.class
+GROUP BY c.class
+```
+
+### 57
+
+[Для классов, имеющих потери в виде потопленных кораблей и не менее 3 кораблей в базе данных, вывести имя класса и число потопленных кораблей.](https://sql-ex.ru/learn_exercises.php?LN=57)
+
+Решение:
+```sql
+SELECT class, COUNT(ship) count_sunked
+FROM (SELECT name, class FROM ships
+      UNION
+      SELECT ship, ship FROM outcomes) t
+LEFT JOIN outcomes ON name = ship AND result = 'sunk'
+GROUP BY class
+HAVING COUNT(ship) > 0 AND COUNT(*) > 2;
+```
+
+### 58
+
+[Для каждого типа продукции и каждого производителя из таблицы Product c точностью до двух десятичных знаков найти процентное отношение числа моделей данного типа данного производителя к общему числу моделей этого производителя.
+Вывод: maker, type, процентное отношение числа моделей данного типа к общему числу моделей производителя](https://sql-ex.ru/learn_exercises.php?LN=58)
+
+Решение:
+```sql
+SELECT m, t,
+CAST(100.0*cc/cc1 AS NUMERIC(5,2))
+FROM
+(SELECT m, t, sum(c) cc from
+(SELECT DISTINCT maker m, 'PC' t, 0 c FROM product
+UNION ALL
+SELECT DISTINCT maker, 'Laptop', 0 FROM product
+UNION ALL
+SELECT DISTINCT maker, 'Printer', 0 FROM product
+UNION ALL
+SELECT maker, type, count(*) FROM product
+GROUP BY maker, type) as tt
+GROUP BY m, t) tt1
+JOIN (
+SELECT maker, count(*) cc1 FROM product GROUP BY maker
+) tt2
+```
+
+### 59
+
+[Посчитать остаток денежных средств на каждом пункте приема для базы данных с отчетностью не чаще одного раза в день. Вывод: пункт, остаток.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT c1, c2-
+(CASE
+WHEN o2 is null THEN 0
+ELSE o2
+END)
+FROM
+(SELECT point c1, sum(inc) c2 FROM income_o
+GROUP BY point) as t1
+LEFT JOIN
+(SELECT point o1, sum(out) o2 FROM outcome_o
+GROUP BY point) as t2
+ON c1=o1
+```
+
+### 60:
+
+[Посчитать остаток денежных средств на начало дня 15/04/01 на каждом пункте приема для базы данных с отчетностью не чаще одного раза в день. Вывод: пункт, остаток.
+Замечание. Не учитывать пункты, информации о которых нет до указанной даты.](https://sql-ex.ru/learn_exercises.php?LN=60)
+
+Решение:
+```sql
+SELECT c1, c2-
+(CASE
+WHEN o2 is null THEN 0
+ELSE o2
+END)
+FROM
+(SELECT point c1, sum(inc) c2 FROM income_o
+WHERE date<'2001-04-15'
+GROUP BY point) as t1
+LEFT JOIN
+(SELECT point o1, sum(out) o2 FROM outcome_o
+WHERE date<'2001-04-15'
+GROUP BY point) as t2
+ON c1=o1
+```
