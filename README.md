@@ -330,7 +330,7 @@ SELECT COUNT(maker) as Quantity FROM
 SELECT maker FROM product GROUP BY maker HAVING COUNT(*) = 1
 ) this_table
 ```
-###29
+### 29
 
 [В предположении, что приход и расход денег на каждом пункте приема фиксируется не чаще одного раза в день [т.е. первичный ключ (пункт, дата)], написать запрос с выходными данными (пункт, дата, приход, расход). Использовать таблицы Income_o и Outcome_o.](https://sql-ex.ru/learn_exercises.php?LN=29)
 
