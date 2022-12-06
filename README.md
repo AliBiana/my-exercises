@@ -435,3 +435,202 @@ FROM product
 GROUP BY maker
 HAVING COUNT(DISTINCT type) = 1 AND COUNT(model) > 1
 ```
+### 41
+
+[Для каждого производителя, у которого присутствуют модели хотя бы в одной из таблиц PC, Laptop или Printer,
+определить максимальную цену на его продукцию.
+Вывод: имя производителя, если среди цен на продукцию данного производителя присутствует NULL, то выводить для этого производителя NULL,
+иначе максимальную цену.](https://sql-ex.ru/learn_exercises.php)
+
+Решение:
+```sql
+with D as
+(SELECT model, price FROM pc
+UNION
+SELECT model, price FROM Laptop
+UNION
+SELECT model, price FROM Printer)
+SELECT DISTINCT P.maker,
+CASE WHEN MAX(CASE WHEN D.price IS NULL THEN 1 ELSE 0 END) = 0 THEN
+MAX(D.price) END
+FROM Product P
+RIGHT JOIN D ON P.model=D.model
+GROUP BY P.maker
+```
+### 42
+
+[Найдите названия кораблей, потопленных в сражениях, и название сражения, в котором они были потоплены.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT ship, battle
+FROM outcomes
+WHERE result='sunk'
+```
+### 43
+
+[Укажите сражения, которые произошли в годы, не совпадающие ни с одним из годов спуска кораблей на воду.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT name 
+FROM battles 
+WHERE DATEPART(yy, date) NOT IN 
+(
+SELECT DATEPART(yy, date)
+FROM battles
+JOIN ships ON DATEPART(yy, date)=launched)
+```
+
+### 44
+
+[Найдите названия всех кораблей в базе данных, начинающихся с буквы R.](https://sql-ex.ru/learn_exercises.php?LN=44)
+
+Решение:
+```sql
+SELECT *
+FROM
+(
+SELECT name
+FROM ships
+UNION
+SELECT ship
+FROM outcomes
+) a
+WHERE name LIKE 'R%'
+```
+
+### 45
+
+[Найдите названия всех кораблей в базе данных, состоящие из трех и более слов (например, King George V).
+Считать, что слова в названиях разделяются единичными пробелами, и нет концевых пробелов.](https://sql-ex.ru/learn_exercises.php?LN=45)
+
+Решение:
+```sql
+SELECT *
+FROM
+(
+SELECT name
+FROM ships
+UNION
+SELECT ship
+FROM outcomes
+) a
+WHERE name LIKE '% % %'
+```
+
+### 46
+
+[Для каждого корабля, участвовавшего в сражении при Гвадалканале (Guadalcanal), вывести название, водоизмещение и число орудий.](https://sql-ex.ru/learn_exercises.php?LN=46)
+
+Решение:
+```sql
+SELECT DISTINCT ship, displacement, numguns
+FROM classes LEFT JOIN ships ON classes.class=ships.class RIGHT JOIN outcomes ON classes.class=ship OR ships.name=ship
+WHERE battle='Guadalcanal'
+```
+
+### 47
+
+[Определить страны, которые потеряли в сражениях все свои корабли.](https://sql-ex.ru/learn_exercises.php?LN=47)
+
+Решение:
+```sql
+WITH out AS (SELECT *
+FROM outcomes JOIN (SELECT ships.name s_name, classes.class s_class, classes.country s_country
+FROM ships FULL JOIN classes
+ON ships.class = classes.class
+) u
+ON outcomes.ship=u.s_class
+UNION 
+SELECT *
+FROM outcomes JOIN (SELECT ships.name s_name, classes.class s_class, classes.country s_country
+FROM ships FULL JOIN classes
+ON ships.class = classes.class
+) u
+ON outcomes.ship=u.s_name)
+
+SELECT fin.country
+FROM (
+SELECT DISTINCT t.country, COUNT(t.name) AS num_ships
+FROM (
+SELECT DISTINCT c.country, s.name
+FROM classes c
+INNER JOIN Ships s ON s.class= c.class
+UNION
+SELECT DISTINCT c.country, o.ship
+FROM classes c
+INNER JOIN Outcomes o ON o.ship= c.class) t
+GROUP BY t.country
+
+INTERSECT
+
+SELECT out.s_country, COUNT(out.ship) AS num_ships
+FROM out
+WHERE out.result='sunk'
+GROUP BY out.s_country) fin
+```
+### 48
+
+[Найдите классы кораблей, в которых хотя бы один корабль был потоплен в сражении.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT class
+FROM classes t1 LEFT JOIN outcomes t2 ON t1.class=t2.ship WHERE result='sunk'
+UNION
+SELECT class
+FROM ships LEFT JOIN outcomes ON ships.name=outcomes.ship WHERE result='sunk'
+```
+
+### 49
+
+[Найдите названия кораблей с орудиями калибра 16 дюймов (учесть корабли из таблицы Outcomes).](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT s.name 
+FROM ships s 
+JOIN classes c ON s.name=c.class OR s.class = c.class WHERE c.bore = 16
+UNION
+SELECT o.ship FROM outcomes o JOIN classes c ON o.ship=c.class WHERE c.bore = 16
+```
+
+### 50
+
+[Найдите сражения, в которых участвовали корабли класса Kongo из таблицы Ships.](https://sql-ex.ru/learn_exercises.php?LN=50)
+
+Решение:
+```sql
+SELECT DISTINCT o.battle
+FROM ships s 
+JOIN outcomes o ON s.name = o.ship WHERE s.class = 'kongo'
+```
+
+### 51
+
+[Найдите названия кораблей, имеющих наибольшее число орудий среди всех имеющихся кораблей такого же водоизмещения (учесть корабли из таблицы Outcomes).](https://sql-ex.ru/learn_exercises.php?LN=51)
+
+Решение:
+```sql
+select NAME 
+from
+(
+select name as NAME, displacement, numguns 
+from ships 
+inner join classes on ships.class = classes.class 
+union 
+select ship as NAME, displacement, numguns 
+from outcomes 
+inner join classes on outcomes.ship= classes.class) as d1 
+inner join (select displacement, max(numGuns) as numguns 
+from 
+( 
+select displacement, numguns 
+from ships 
+inner join classes on ships.class = classes.class 
+union 
+select displacement, numguns 
+from outcomes 
+inner join classes on outcomes.ship= classes.class) as f 
+group by displacement) as d2 on d1.displacement=d2.displacement and d1.numguns =d2.numguns
