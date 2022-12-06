@@ -96,62 +96,109 @@ SELECT DISTINCT model, price FROM printer
 WHERE price = (SELECT MAX(price) FROM printer)
 ```
 
-№11: Найдите среднюю скорость ПК.
-Cсылка: https://sql-ex.ru/learn_exercises.php?LN=11
+### 11
+[Найдите среднюю скорость ПК.](https://sql-ex.ru/learn_exercises.php?LN=11)
 
-Решение: SELECT AVG(speed) AS Avg_speed FROM pc
+Решение:
+```sql
+SELECT AVG(speed) AS Avg_speed FROM pc
+```
 
-№12: Найдите среднюю скорость ПК-блокнотов, цена которых превышает 1000 дол.
-Cсылка: https://sql-ex.ru/learn_exercises.php?LN=12
+### 12 
+[Найдите среднюю скорость ПК-блокнотов, цена которых превышает 1000 дол.](https://sql-ex.ru/learn_exercises.php?LN=12)
 
-Решение: SELECT AVG(speed) AS Avg_speed FROM laptop WHERE price > 1000
+Решение: 
+``` sql
+SELECT AVG(speed) AS Avg_speed FROM laptop WHERE price > 1000
+```
 
-№13: Найдите среднюю скорость ПК, выпущенных производителем A.
-Ссылка: https://sql-ex.ru/learn_exercises.php?LN=13
+### 13
+[Найдите среднюю скорость ПК, выпущенных производителем A.](https://sql-ex.ru/learn_exercises.php?LN=13)
 
+Решение:
+```sql
 SELECT DISTINCT AVG(pc.speed) AS Avg_speed FROM pc JOIN product on pc.model = product.model WHERE maker = 'A'
+```
+### 14 
 
-№14: 
-Решение: SELECT s.class, s.name, c.country
+[Найдите класс, имя и страну для кораблей из таблицы Ships, имеющих не менее 10 орудий.](https://sql-ex.ru/learn_exercises.php?LN=14)
+
+Решение: 
+```sql
+SELECT s.class, s.name, c.country
 FROM ships s
 JOIN classes c ON s.class = c.class
 WHERE c.numGuns >= 10
+```
 
-№15:
+### 15
+
+[Найдите размеры жестких дисков, совпадающих у двух и более PC. Вывести: HD](https://sql-ex.ru/learn_exercises.php?LN=15)
+
 Решение: 
+```sql
 SELECT hd FROM pc GROUP BY (hd) HAVING COUNT(model) >= 2
+```
 
-№16: 
+### 16 
+
+[Найдите пары моделей PC, имеющих одинаковые скорость и RAM. В результате каждая пара указывается только один раз, т.е. (i,j), но не (j,i), Порядок вывода: модель с большим номером, модель с меньшим номером, скорость и RAM.](https://sql-ex.ru/learn_exercises.php?LN=16)
+
 Решение:
+```sql
 SELECT DISTINCT p1.model, p2.model, p1.speed, p1.ram
 FROM pc p1, pc p2
 WHERE p1.speed = p2.speed AND p1.ram = p2.ram AND p1.model > p2.model
+```
 
-№17:
+### 17
+
+[Найдите модели ПК-блокнотов, скорость которых меньше скорости каждого из ПК.
+Вывести: type, model, speed](https://sql-ex.ru/learn_exercises.php?LN=17)
+
 Решение:
+```sql
 SELECT DISTINCT product.type, laptop.model, laptop.speed
 FROM laptop, product
 WHERE speed < (SELECT MIN(speed) FROM pc)
 AND product.type ='Laptop'
+```
 
-№18: 
+### 18 
+
+[Найдите производителей самых дешевых цветных принтеров. Вывести: maker, price](https://sql-ex.ru/learn_exercises.php?LN=18)
+
 Решение: 
+```sql
 SELECT DISTINCT maker, price FROM product JOIN printer ON printer.model = product.model WHERE price = (SELECT MIN(price) FROM printer
 WHERE color='y')
 AND color='y'
+```
 
-№:19:
-РЕШЕНИЕ: SELECT maker, AVG(screen)
+### 19
+
+[Для каждого производителя, имеющего модели в таблице Laptop, найдите средний размер экрана выпускаемых им ПК-блокнотов.
+Вывести: maker, средний размер экрана.](https://sql-ex.ru/learn_exercises.php?LN=19)
+
+Решение:
+```sql
+SELECT maker, AVG(screen)
 FROM product JOIN laptop ON product.model=laptop.model
 GROUP BY maker
+```
 
-№20: 
-Решение: SELECT maker as Maker, COUNT(model) as Count_Model
+### 20 
+
+[Найдите производителей, выпускающих по меньшей мере три различных модели ПК. Вывести: Maker, число моделей ПК.](https://sql-ex.ru/learn_exercises.php?LN=20)
+
+Решение: 
+```sql
+SELECT maker as Maker, COUNT(model) as Count_Model
 FROM product
 WHERE type='pc'
 GROUP BY maker
 HAVING COUNT(model)>=3
-
+```
 ### 21
 
 [Найдите максимальную цену ПК, выпускаемых каждым производителем, у которого есть модели в таблице PC.
