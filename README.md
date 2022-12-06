@@ -613,24 +613,48 @@ JOIN outcomes o ON s.name = o.ship WHERE s.class = 'kongo'
 
 Решение:
 ```sql
-select NAME 
-from
+SELECT NAME 
+FROM
 (
-select name as NAME, displacement, numguns 
-from ships 
-inner join classes on ships.class = classes.class 
-union 
-select ship as NAME, displacement, numguns 
-from outcomes 
-inner join classes on outcomes.ship= classes.class) as d1 
-inner join (select displacement, max(numGuns) as numguns 
-from 
+SELECT name as NAME, displacement, numguns 
+FROM ships 
+INNER JOIN classes ON ships.class = classes.class 
+UNION 
+SELECT ship as NAME, displacement, numguns 
+FROM outcomes 
+INNER JOIN classes ON outcomes.ship= classes.class) as d1 
+INNER JOIN (SELECT displacement, max(numGuns) as numguns 
+FROM
 ( 
-select displacement, numguns 
-from ships 
-inner join classes on ships.class = classes.class 
-union 
-select displacement, numguns 
-from outcomes 
-inner join classes on outcomes.ship= classes.class) as f 
-group by displacement) as d2 on d1.displacement=d2.displacement and d1.numguns =d2.numguns
+SELECT displacement, numguns 
+FROM ships 
+INNER JOIN classes ON ships.class = classes.class 
+UNION 
+SELECT displacement, numguns 
+FROM outcomes 
+INNER JOIN classes ON outcomes.ship= classes.class) as f 
+GROUP BY displacement) as d2 ON d1.displacement=d2.displacement AND d1.numguns =d2.numguns
+```
+
+### 52
+
+[Определить названия всех кораблей из таблицы Ships, которые могут быть линейным японским кораблем,
+имеющим число главных орудий не менее девяти, калибр орудий менее 19 дюймов и водоизмещение не более 65 тыс.тонн](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT s.name as NAME
+FROM ships s 
+JOIN classes c ON s.class = c.class WHERE country = 'japan' AND (numGuns >= '9' OR numGuns is null) AND (bore < '19' or bore is null) AND (displacement <= '65000' OR displacement is null) AND type='bb'
+```
+
+### 53
+
+[Определите среднее число орудий для классов линейных кораблей. Получить результат с точностью до 2-х десятичных знаков.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT CAST(AVG(numguns*1.0) AS NUMERIC(6,2)) AS Avg_nmg 
+FROM classes 
+WHERE type = 'bb'
+```
