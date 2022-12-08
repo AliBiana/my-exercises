@@ -817,7 +817,7 @@ GROUP BY point) as t2
 ON c1=o1
 ```
 
-### 60:
+### 60
 
 [Посчитать остаток денежных средств на начало дня 15/04/01 на каждом пункте приема для базы данных с отчетностью не чаще одного раза в день. Вывод: пункт, остаток.
 Замечание. Не учитывать пункты, информации о которых нет до указанной даты.](https://sql-ex.ru/learn_exercises.php?LN=60)
@@ -839,3 +839,428 @@ WHERE date<'2001-04-15'
 GROUP BY point) as t2
 ON c1=o1
 ```
+### 61
+
+[Посчитать остаток денежных средств на всех пунктах приема для базы данных с отчетностью не чаще одного раза в день.](https://sql-ex.ru/learn_exercises.php)
+
+Решение:
+```sql
+SELECT sum(i) FROM
+(SELECT point, SUM(inc) as i FROM
+income_o
+GROUP BY point
+UNION
+
+SELECT point, -sum(out) as i FROM
+outcome_o
+GROUP BY point
+) as t
+```
+
+### 62
+
+[Посчитать остаток денежных средств на всех пунктах приема на начало дня 15/04/01 для базы данных с отчетностью не чаще одного раза в день.](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT
+(SELECT sum(inc) FROM Income_o WHERE date<'2001-04-15')
+-
+(SELECT sum(out) FROM Outcome_o WHERE date<'2001-04-15')
+AS remain
+```
+
+### 63
+
+[Определить имена разных пассажиров, когда-либо летевших на одном и том же месте более одного раза.](https://sql-ex.ru/learn_exercises.php?LN=63)
+
+Решение:
+```sql
+SELECT name FROM Passenger
+WHERE ID_psg in
+(SELECT ID_psg FROM Pass_in_trip
+GROUP BY place, ID_psg
+HAVING count(*)>1)
+```
+
+### 64
+
+[Используя таблицы Income и Outcome, для каждого пункта приема определить дни, когда был приход, но не было расхода и наоборот.
+Вывод: пункт, дата, тип операции (inc/out), денежная сумма за день.](https://sql-ex.ru/learn_exercises.php?LN=64)
+
+Решение:
+```sql
+SELECT i1.point, i1.date, 'inc', sum(inc) FROM Income,
+(SELECT point, date FROM Income
+EXCEPT
+SELECT Income.point, Income.date FROM Income
+JOIN Outcome ON (Income.point=Outcome.point) AND
+(Income.date=Outcome.date)
+) AS i1
+WHERE i1.point=Income.point AND i1.date=Income.date
+GROUP BY i1.point, i1.date
+UNION
+SELECT o1.point, o1.date, 'out', sum(out) FROM Outcome,
+(SELECT point, date FROM Outcome
+EXCEPT
+SELECT Income.point, Income.date FROM Income
+JOIN Outcome ON (Income.point=Outcome.point) AND
+(Income.date=Outcome.date)
+) AS o1
+WHERE o1.point=Outcome.point AND o1.date=Outcome.date
+GROUP BY o1.point, o1.date
+```
+
+### 65
+
+[Пронумеровать уникальные пары {maker, type} из Product, упорядочив их следующим образом:
+- имя производителя (maker) по возрастанию;
+- тип продукта (type) в порядке PC, Laptop, Printer.
+Если некий производитель выпускает несколько типов продукции, то выводить его имя только в первой строке;
+остальные строки для ЭТОГО производителя должны содержать пустую строку символов ('').](https://sql-ex.ru/learn_exercises.php?LN=65)
+
+Решение:
+```sql
+SELECT row_number() over(ORDER BY maker,s),t, type FROM
+(SELECT maker,type,
+CASE
+WHEN type='PC'
+THEN 0
+WHEN type='Laptop'
+THEN 1
+ELSE 2
+END AS s,
+CASE
+WHEN type='Laptop' AND (maker in (SELECT maker FROM Product WHERE
+type='PC'))
+THEN ''
+WHEN type='Printer' AND ((maker in (SELECT maker FROM Product WHERE
+type='PC')) OR (maker in (SELECT maker FROM Product WHERE
+type='Laptop')))
+THEN ''
+ELSE maker
+END AS t
+FROM Product
+GROUP BY maker,type) AS t1
+ORDER BY maker, s
+```
+
+### 66
+
+[Для всех дней в интервале с 01/04/2003 по 07/04/2003 определить число рейсов из Rostov.
+Вывод: дата, количество рейсов](https://sql-ex.ru/learn_exercises.php?LN=66)
+
+Решение:
+```sql
+SELECT date, max(c) FROM
+(SELECT date,count(*) AS c FROM Trip,
+(SELECT trip_no,date FROM Pass_in_trip WHERE date>='2003-04-01' AND date<='2003-04-07' GROUP BY trip_no, date) AS t1
+WHERE Trip.trip_no=t1.trip_no AND town_from='Rostov'
+GROUP BY date
+UNION ALL
+SELECT '2003-04-01',0
+UNION ALL
+SELECT '2003-04-02',0
+UNION ALL
+SELECT '2003-04-03',0
+UNION ALL
+SELECT '2003-04-04',0
+UNION ALL
+SELECT '2003-04-05',0
+UNION ALL
+SELECT '2003-04-06',0
+UNION ALL
+SELECT '2003-04-07',0) AS t2
+GROUP BY date
+```
+
+### 67
+
+[Найти количество маршрутов, которые обслуживаются наибольшим числом рейсов.
+Замечания.
+1) A - B и B - A считать РАЗНЫМИ маршрутами.
+2) Использовать только таблицу Trip](https://sql-ex.ru/learn_exercises.php?LN=67)
+
+Решение:
+```sql
+SELECT count(*) FROM
+(SELECT TOP 1 WITH TIES count(*) c, town_from, town_to FROM trip
+GROUP BY town_from, town_to
+ORDER BY c desc) as t
+```
+
+### 68
+
+[Найти количество маршрутов, которые обслуживаются наибольшим числом рейсов.
+Замечания.
+1) A - B и B - A считать ОДНИМ И ТЕМ ЖЕ маршрутом.
+2) Использовать только таблицу Trip](https://sql-ex.ru/learn_exercises.php?LN=68)
+
+Решение:
+```sql
+SELECT count(*) as Count FROM (
+SELECT TOP 1 WITH TIES sum(c) cc, c1, c2 FROM (
+SELECT count(*) c, town_from c1, town_to c2 FROM trip
+WHERE town_from>=town_to
+GROUP BY town_from, town_to
+UNION ALL
+SELECT count(*) c,town_to, town_from FROM trip
+WHERE town_to>town_from
+GROUP BY town_from, town_to
+) as t
+GROUP BY c1,c2
+ORDER BY cc DESC
+) as tt
+```
+
+### 69
+
+[По таблицам Income и Outcome для каждого пункта приема найти остатки денежных средств на конец каждого дня,
+в который выполнялись операции по приходу и/или расходу на данном пункте.
+Учесть при этом, что деньги не изымаются, а остатки/задолженность переходят на следующий день.
+Вывод: пункт приема, день в формате "dd/mm/yyyy", остатки/задолженность на конец этого дня.](https://sql-ex.ru/learn_exercises.php?LN=69)
+
+Решение:
+```sql
+with q as (
+  SELECT
+    isnull(i.point, o.point) point
+    , isnull(i.date, o.date) date
+    , coalesce(sum(i.inc), 0) - coalesce(sum(o.out), 0) balance
+    FROM income i
+    FULL JOIN outcome o
+      ON i.point=o.point AND i.date=o.date AND i.code=o.code
+    GROUP BY isnull(i.point, o.point), isnull(i.date, o.date)
+)
+ SELECT
+  point
+    -- 103 means format "dd/mm/yyyy"
+  , convert(varchar, date, 103) day
+  , sum(balance) over(partition by point order by date RANGE UNBOUNDED PRECEDING) as rem
+  FROM q
+ORDER BY point,date
+```
+
+### 70
+
+[Укажите сражения, в которых участвовало по меньшей мере три корабля одной и той же страны.](https://sql-ex.ru/learn_exercises.php?LN=70)
+
+Решение:
+```sql
+SELECT DISTINCT o.battle
+FROM outcomes o
+LEFT JOIN ships s ON s.name = o.ship
+LEFT JOIN classes c ON o.ship = c.class OR s.class = c.class
+WHERE c.country IS NOT NULL
+GROUP BY c.country, o.battle
+HAVING COUNT(o.ship) >= 3
+```
+
+### 71
+
+[Найти тех производителей ПК, все модели ПК которых имеются в таблице PC.](https://sql-ex.ru/learn_exercises.php?LN=71)
+
+Решение:
+```sql
+SELECT p.maker
+FROM product p
+LEFT JOIN pc ON pc.model = p.model
+WHERE p.type = 'PC'
+GROUP BY p.maker
+HAVING COUNT(p.model) = COUNT(pc.model)
+```
+
+### 72
+
+[Среди тех, кто пользуется услугами только какой-нибудь одной компании, определить имена разных пассажиров, летавших чаще других.
+Вывести: имя пассажира и число полетов.](https://sql-ex.ru/learn_exercises.php?LN=72)
+
+Решение:
+```sql
+SELECT TOP 1 WITH TIES name, c3 FROM passenger
+JOIN
+(SELECT c1, max(c3) c3 FROM
+(
+SELECT pass_in_trip.ID_psg c1, Trip.ID_comp c2, count(*) c3 FROM pass_in_trip
+JOIN trip ON trip.trip_no=pass_in_trip.trip_no
+GROUP BY pass_in_trip.ID_psg, Trip.ID_comp
+) as t
+group by c1
+HAVING count(*)=1) as tt
+ON ID_psg=c1
+ORDER BY c3 DESC
+```
+
+### 73
+
+[Для каждой страны определить сражения, в которых не участвовали корабли данной страны.
+Вывод: страна, сражение](https://sql-ex.ru/learn_exercises.php?LN=73)
+
+Решение:
+```sql
+SELECT c.country, b.name
+FROM Classes c, Battles b
+EXCEPT
+SELECT c.country, o.battle
+FROM Outcomes o
+LEFT JOIN ships s ON o.ship=s.name
+LEFT JOIN Classes c ON o.ship=c.class OR s.class=c.class
+WHERE c.country is not null
+GROUP BY c.country, o.battle
+```
+
+### 74
+
+[Вывести все классы кораблей России (Russia). Если в базе данных нет классов кораблей России, вывести классы для всех имеющихся в БД стран.
+Вывод: страна, класс](https://sql-ex.ru/learn_exercises.php?LN=74)
+
+Решение:
+```sql
+SELECT c.country, c.class
+FROM classes c
+WHERE UPPER(c.country) = 'RUSSIA' AND EXISTS (
+SELECT c.country, c.class
+FROM classes c
+WHERE UPPER(c.country) = 'RUSSIA' )
+UNION ALL
+SELECT c.country, c.class
+FROM classes c
+WHERE NOT EXISTS (SELECT c.country, c.class
+FROM classes c
+WHERE UPPER(c.country) = 'RUSSIA' )
+```
+
+### 75
+
+[Для тех производителей, у которых есть продукты с известной ценой хотя бы в одной из таблиц Laptop, PC, Printer найти максимальные цены на каждый из типов продукции.
+Вывод: maker, максимальная цена на ноутбуки, максимальная цена на ПК, максимальная цена на принтеры.
+Для отсутствующих продуктов/цен использовать NULL.](https://sql-ex.ru/learn_exercises.php?LN=75)
+
+Решение:
+```sql
+SELECT shipname,launched,batname
+FROM
+(SELECT s.name as shipname,launched,b.name as batname,
+row_number() over (partition by s.name order by "date") as num
+FROM ships s,battles b
+WHERE to_char("date",'yyyy')>=launched
+AND launched is not null)
+WHERE num = 1
+UNION
+(
+SELECT name,launched,(SELECT name FROM battles
+WHERE "date" = (SELECT MAX("date") FROM battles)) as batname
+FROM ships
+WHERE launched is null
+)
+```
+
+### 76
+
+[Определить время, проведенное в полетах, для пассажиров, летавших всегда на разных местах. Вывод: имя пассажира, время в минутах.](https://sql-ex.ru/learn_exercises.php?LN=76)
+
+Решение:
+```sql
+with pf as(
+  SELECT id_psg, count(*) as place_count
+  FROM pass_in_trip
+  GROUP BY id_psg, place
+),
+pt as(
+  SELECT
+    pt.id_psg, pt.trip_no
+    , ps.name
+    , time_out, time_in
+    , CASE when time_out >= time_in
+        then time_in-time_out + 1440
+        else time_in-time_out
+    end as time
+  FROM pass_in_trip pt
+  JOIN passenger ps ON ps.id_psg=pt.id_psg
+  JOIN (
+    SELECT
+      datepart(hh, time_out)*60 + datepart(mi, time_out) time_out
+      , datepart(hh, time_in)*60 + datepart(mi, time_in) time_in
+      , trip_no
+    FROM trip t
+  ) as t ON t.trip_no=pt.trip_no
+  WHERE 1=ALL(select place_count FROM pf WHERE pf.id_psg=pt.id_psg)
+)
+SELECT
+  name, sum(time) fly_time
+FROM pt
+GROUP BY id_psg, name
+```
+
+### 77
+
+[Определить дни, когда было выполнено максимальное число рейсов из
+Ростова ('Rostov'). Вывод: число рейсов, дата.](https://sql-ex.ru/learn_exercises.php?LN=77)
+
+Решение:
+```sql
+SELECT TOP 1 WITH TIES * FROM
+	(SELECT
+		COUNT(distinct(pt.trip_no)) qty, pt.date
+	FROM
+		Trip t, Pass_in_trip pt
+	WHERE t.trip_no=pt.trip_no AND t.town_from = 'Rostov'
+	GROUP BY pt.date) t1
+ORDER BY t1.qty DESC
+```
+
+### 78
+
+[Для каждого сражения определить первый и последний день
+месяца,
+в котором оно состоялось.
+Вывод: сражение, первый день месяца, последний
+день месяца.
+
+Замечание: даты представить без времени в формате "yyyy-mm-dd".](https://sql-ex.ru/learn_exercises.php?LN=78)
+
+Решение:
+```sql
+SELECT name, 
+REPLACE(CONVERT(CHAR(12), 
+DATEADD(m, DATEDIFF(m,0,date),0), 102),'.','-') AS first_day,
+             REPLACE(CONVERT(CHAR(12), DATEADD(s,-1,DATEADD(m, DATEDIFF(m,0,date)+1,0)), 102),'.','-') AS last_day
+FROM Battles
+```
+
+### 79
+
+[Определить пассажиров, которые больше других времени провели в полетах.
+Вывод: имя пассажира, общее время в минутах, проведенное в полетах](https://sql-ex.ru/learn_exercises.php?LN=79)
+
+Решение:
+```sql
+SELECT Passenger.name, A.minutes
+FROM (SELECT P.ID_psg,
+      SUM((DATEDIFF(minute, time_out, time_in) + 1440)%1440) AS minutes,
+      MAX(SUM((DATEDIFF(minute, time_out, time_in) + 1440)%1440)) OVER() AS MaxMinutes
+      FROM Pass_in_trip P JOIN
+       Trip AS T ON P.trip_no = T.trip_no
+      GROUP BY P.ID_psg
+      ) AS A JOIN
+ Passenger ON Passenger.ID_psg = A.ID_psg
+WHERE A.minutes = A.MaxMinutes
+```
+
+### 80
+
+[Найти производителей любой компьютерной техники, у которых нет моделей ПК, не представленных в таблице PC.](https://sql-ex.ru/learn_exercises.php?LN=80)
+
+Решение:
+```sql
+SELECT DISTINCT maker
+FROM product
+WHERE maker NOT IN (
+SELECT maker
+FROM product
+WHERE type='PC' AND model NOT IN (
+SELECT model
+FROM PC));
+```
+  
+
