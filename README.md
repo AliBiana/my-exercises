@@ -91,6 +91,16 @@ SQL - список задач:
 + [88 задание](#88)
 + [89 задание](#89)
 + [90 задание](#90)
++ [91 задание](#91)
++ [92 задание](#92)
++ [93 задание](#93)
++ [94 задание](#94)
++ [95 задание](#95)
++ [96 задание](#96)
++ [97 задание](#97)
++ [98 задание](#98)
++ [99 задание](#99)
++ [100 задание](#100)
 
 ### 1 
 [Найдите номер модели, скорость и размер жесткого диска для всех ПК стоимостью менее 500 дол. Вывести: model, speed и hd](https://sql-ex.ru/learn_exercises.php?LN=1)
@@ -1617,4 +1627,126 @@ WHERE A.Qty = A.M_Qty) AS D
 
 ### 95
 
-[
+[На основании информации из таблицы Pass_in_Trip, для каждой авиакомпании определить:
+1) количество выполненных перелетов;
+2) число использованных типов самолетов;
+3) количество перевезенных различных пассажиров;
+4) общее число перевезенных компанией пассажиров.
+Вывод: Название компании, 1), 2), 3), 4).](https://sql-ex.ru/learn_exercises.php#answer_ref)
+
+Решение:
+```sql
+SELECT name,
+COUNT(DISTINCT CONVERT(CHAR(24),date)+CONVERT(CHAR(4),Trip.trip_no)),
+COUNT(DISTINCT plane),
+COUNT(DISTINCT ID_psg),
+COUNT(*)
+FROM Company,Pass_in_trip,Trip
+WHERE Company.ID_comp=Trip.ID_comp and Trip.trip_no=Pass_in_trip.trip_no
+GROUP BY Company.ID_comp,name
+```
+
+### 96
+
+[При условии, что баллончики с красной краской использовались более одного раза, выбрать из них такие, которыми окрашены квадраты, имеющие голубую компоненту.
+Вывести название баллончика](https://sql-ex.ru/learn_exercises.php?LN=96)
+
+Решение:
+```sql
+with r as (select v.v_name,
+v.v_id,
+count(case when v_color = 'R' then 1 end) over(partition by v_id) cnt_r,
+count(case when v_color = 'B' then 1 end) over(partition by b_q_id) cnt_b
+FROM utV v join utB b on v.v_id = b.b_v_id)
+SELECT v_name
+FROM r
+WHERE cnt_r > 1 AND cnt_b > 0
+GROUP BY v_name
+```
+
+### 97
+
+[Отобрать из таблицы Laptop те строки, для которых выполняется следующее условие:
+значения из столбцов speed, ram, price, screen возможно расположить таким образом, что каждое последующее значение будет превосходить предыдущее в 2 раза или более.
+Замечание: все известные характеристики ноутбуков больше нуля.
+Вывод: code, speed, ram, price, screen.](https://sql-ex.ru/learn_exercises.php?LN=97)
+
+Решение:
+```sql
+SELECT code, speed, ram, price, screen
+FROM laptop WHERE exists (
+SELECT 1 x
+FROM (
+SELECT v, rank()over(order by v) rn
+FROM( select cast(speed as float) sp, cast(ram as float) rm,
+CAST(price as float) pr, cast(screen as float) sc
+)l unpivot(v for c in (sp, rm, pr, sc))u
+)l pivot(max(v) for rn in ([1],[2],[3],[4]))p
+WHERE [1]*2 <= [2] and [2]*2 <= [3] AND [3]*2 <= [4]
+)
+```
+
+### 98
+
+[Вывести список ПК, для каждого из которых результат побитовой операции ИЛИ, примененной к двоичным представлениям скорости процессора и объема памяти, содержит последовательность из не менее четырех идущих подряд единичных битов.
+Вывод: код модели, скорость процессора, объем памяти.](https://sql-ex.ru/learn_exercises.php?LN=98)
+
+Решение:
+```sql
+with CTE AS
+(SELECT
+1 n, cast (0 as varchar(16)) bit_or,
+code, speed, ram FROM PC
+UNION ALL
+SELECT n*2,
+cast (convert(bit,(speed|ram)&n) as varchar(1))+cast(bit_or as varchar(15))
+, code, speed, ram
+FROM CTE WHERE n < 65536
+)
+SELECT code, speed, ram FROM CTE
+WHERE n = 65536 AND CHARINDEX('1111', bit_or )> 0
+```
+
+### 99
+
+[Рассматриваются только таблицы Income_o и Outcome_o. Известно, что прихода/расхода денег в воскресенье не бывает.
+Для каждой даты прихода денег на каждом из пунктов определить дату инкассации по следующим правилам:
+1. Дата инкассации совпадает с датой прихода, если в таблице Outcome_o нет записи о выдаче денег в эту дату на этом пункте.
+2. В противном случае - первая возможная дата после даты прихода денег, которая не является воскресеньем и в Outcome_o не отмечена выдача денег сдатчикам вторсырья в эту дату на этом пункте.
+Вывод: пункт, дата прихода денег, дата инкассации.](https://sql-ex.ru/learn_exercises.php?LN=99)
+
+Решение:
+```sql
+SELECT point,"date" income_date,"date" + nvl (min(case when diff > cnt then cnt else null end), max(cnt)+1
+) incass_date
+FROM (SELECT i.point, i."date", (trunc(o."date") - trunc(i."date")) diff,
+count(1) over (partition by i.point, i."date" order by o."date" rows between unbounded preceding and current row)-1 cnt
+FROM income_o i
+JOIN (select point, "date", 1 disabled FROM outcome_o
+UNION
+SELECT point, trunc("date"+7,'DAY'), 1 disabled FROM income_o) o
+ON i.point = o.point
+WHERE o."date" > = i."date")
+GROUP BY point, "date"
+```
+
+### 100
+
+[Написать запрос, который выводит все операции прихода и расхода из таблиц Income и Outcome в следующем виде:
+дата, порядковый номер записи за эту дату, пункт прихода, сумма прихода, пункт расхода, сумма расхода.
+При этом все операции прихода по всем пунктам, совершённые в течение одного дня, упорядочены по полю code, и так же все операции расхода упорядочены по полю code.
+В случае, если операций прихода/расхода за один день было не равное количество, выводить NULL в соответствующих колонках на месте недостающих операций.](https://sql-ex.ru/learn_exercises.php?LN=100)
+
+Решение:
+```sql
+SELECT DISTINCT A.date , A.R, B.point, B.inc, C.point, C.out
+FROM (Select distinct date, ROW_Number() OVER(PARTITION BY date ORDER BY code asc) as R FROM Income
+UNION
+SELECT DISTINCT date, ROW_Number() OVER(PARTITION BY date ORDER BY code asc) FROM Outcome) A
+LEFT JOIN (Select date, point, inc
+, ROW_Number() OVER(PARTITION BY date ORDER BY code asc) as RI FROM Income
+) B ON B.date=A.date and B.RI=A.R
+LEFT JOIN (Select date, point, out
+, ROW_Number() OVER(PARTITION BY date ORDER BY code asc) as RO FROM Outcome
+) C ON C.date=A.date AND C.RO=A.R;
+```
